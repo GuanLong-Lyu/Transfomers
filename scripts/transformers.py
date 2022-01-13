@@ -1,21 +1,21 @@
-# This script is for
+
 from time import time
 import torch
 import torch.nn as nn
 
-class Attention(nn.Module):
-    def __init__(self,input_shape,head):
-        super(Attention,self).__init__()
+class SelfAttention(nn.Module):
+    def __init__(self,embed_size,head):
+        super(SelfAttention,self).__init__()
         self.head = head
-        self.input_shape = input_shape
-        self.head_dims =  int(input_shape // head)
+        self.embed_size = embed_size
+        self.head_dims =  int(embed_size // head)
 
         self.query = nn.Linear(self.head_dims,self.head_dims)
         self.key = nn.Linear(self.head_dims,self.head_dims)
         self.value = nn.Linear(self.head_dims,self.head_dims)
-        self.fc = nn.Linear(self.head_dims*self.head, self.input_shape) # ?
+        self.fc = nn.Linear(self.head_dims*self.head, self.embed_size) # ?
 
-    def foward(self,query, key, value, mask = None):
+    def foward(self, value, key, query, mask = None):
         batch_size = query.shape[0]
         query_len, key_len, value_len = query.shape[1], key.shape[1], value.shape[1]
 
@@ -38,8 +38,32 @@ class Attention(nn.Module):
 
         return out
 
+class TransformerBlock(nn.Module):
+    def __init__(self,embed_size,head, dropout, forward_expansion):
+        super(TransformerBlock,self).__init__()
+        self.attention = SelfAttention(embed_size=embed_size, head=head)
+        self.norm1 = nn.LayerNorm(embed_size)
+        self.norm2 = nn.LayerNorm(embed_size)
 
+        self.feed_forward = nn.Sequential(
+            nn.Linear(embed_size,embed_size * forward_expansion),
+            nn.ReLU(),
+            nn.Linear(embed_size * forward_expansion, embed_size)
+        )
 
+        self.dropout = nn.Dropout(dropout)
+
+        def forward(self, value, key, query, mask):
+            attention = self.attention(value, key, query, mask)
+
+            x = self.dropout(self.norm1(attention + query))
+            forward = self.feed_forward(x)
+
+            out = self(self.dropout(self.norm2(forward + x)))
+
+            return out
+
+            
 
 
 
