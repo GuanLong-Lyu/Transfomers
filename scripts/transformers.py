@@ -63,7 +63,8 @@ class TransformerBlock(nn.Module):
 
             return out
 
-            
+
+class Encoder(nn.Module):
 
 
 
