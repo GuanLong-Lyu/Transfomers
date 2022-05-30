@@ -63,7 +63,10 @@ class TransformerBlock(nn.Module):
 
             return out
 
-            
+
+class Encoder(nn.Module):
+    def __init__(self,head, embed_size, dropout, forward_expansion):
+        super(Encoder,self).__init__()
 
 
 
